@@ -212,7 +212,6 @@ export const workoutDays = [
     title: 'Quads · Hamstrings · Calves',
     targetTime: '~43 min',
     warmup: '5 min',
-    topNote: "Aligned with your trainer's own leg-day exercise picks — squat and leg press give you the compound volume, leg curl covers hamstrings, calf raise and bicycle crunch round it out. Still your shortest session — enough to keep legs developing without eating into upper-body priority.",
     stretchNote: 'Stretch 5 min: quad stretch + hamstring forward fold, 30s each side.',
     blocks: [
       {
