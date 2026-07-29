@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Parthiv — Training Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg: #14161a;
+    --surface: #1c1f24;
+    --surface-2: #23262c;
+    --line: #2c3038;
+    --chalk: #edede7;
+    --steel: #8b9099;
+    --steel-dim: #5c6169;
+
+    --push: #c4453a;      /* 25kg plate red   */
+    --push-dim: #c4453a33;
+    --pull: #3b7ea5;      /* 20kg plate blue  */
+    --pull-dim: #3b7ea533;
+    --legs: #b59a2e;      /* 15kg plate yellow */
+    --legs-dim: #b59a2e33;
+    --upper: #4c7a5b;     /* 10kg plate green */
+    --upper-dim: #4c7a5b33;
+
+    --good: #6fae7f;
+    --bad: #c4453a;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--chalk);
+    font-family: 'Inter', sans-serif;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    min-height:100vh;
+  }
+
+  .wrap{
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    padding: calc(20px + env(safe-area-inset-top)) 16px 18px;
+    max-width: 460px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--steel);
+  }
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: clamp(28px, 8vw, 34px);
+    letter-spacing: 0.01em;
+    margin: 4px 0 2px;
+    text-transform: uppercase;
+  }
+  .sub{
+    color: var(--steel);
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  /* ---------- Tabs (pure CSS, radio driven) ---------- */
+  .tabs-input{ display:none; }
+  .tabbar{
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 12px 16px;
+    max-width: 460px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--line);
+  }
+  .tab-label{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    padding: 8px 2px 9px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: var(--steel);
+    text-transform: uppercase;
+    text-align:center;
+    background: var(--surface);
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .plate{
+    width: 20px; height:20px; border-radius:50%;
+    border: 3px solid currentColor;
+    position: relative;
+  }
+  .plate::after{
+    content:''; position:absolute; inset: 5px; border-radius:50%; background: currentColor; opacity:.35;
+  }
+
+  #tab-push:checked ~ .tabbar .l-push,
+  #tab-pull:checked ~ .tabbar .l-pull,
+  #tab-legs:checked ~ .tabbar .l-legs,
+  #tab-upper:checked ~ .tabbar .l-upper,
+  #tab-progress:checked ~ .tabbar .l-progress{
+    border-color: currentColor;
+    color: var(--chalk);
+    background: var(--surface-2);
+  }
+  .l-push{ color: var(--push); }
+  .l-pull{ color: var(--pull); }
+  .l-legs{ color: var(--legs); }
+  .l-upper{ color: var(--upper); }
+  .l-progress{ color: var(--steel); }
+  .l-progress .plate{ border-style: dashed; }
+
+  section.day{ display:none; padding: 18px 0 6px; }
+  #tab-push:checked ~ .panels .day-push,
+  #tab-pull:checked ~ .panels .day-pull,
+  #tab-legs:checked ~ .panels .day-legs,
+  #tab-upper:checked ~ .panels .day-upper,
+  #tab-progress:checked ~ .panels .day-progress{ display:block; }
+
+  /* ---------- Day header ---------- */
+  .day-head{ padding: 4px 0 16px; }
+  .day-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .day-title{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size: 22px;
+    text-transform: uppercase;
+    margin: 3px 0 6px;
+  }
+  .day-meta{
+    display:flex; gap:14px; font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--steel);
+  }
+  .day-meta b{ color: var(--chalk); font-weight:600; }
+
+  /* ---------- Block group (superset bracket) ---------- */
+  .block{
+    position: relative;
+    margin-bottom: 18px;
+    padding-left: 14px;
+  }
+  .block.paired{ border-left: 2px solid var(--acc); }
+  .block-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--steel-dim);
+    letter-spacing:.08em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .ex-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 13px 14px 12px;
+    margin-bottom: 10px;
+  }
+  .ex-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap: 10px;
+  }
+  .ex-name{
+    font-family:'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 16.5px;
+    text-transform: uppercase;
+    letter-spacing: .01em;
+    line-height:1.2;
+  }
+  .muscle-pill{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing:.06em;
+    text-transform: uppercase;
+    color: var(--acc);
+    background: var(--acc-dim);
+    border-radius: 6px;
+    padding: 3px 7px;
+    white-space: nowrap;
+    flex-shrink:0;
+  }
+  .ex-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 11px;
+  }
+  .stat b{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 14px;
+    font-weight:600;
+    color: var(--chalk);
+  }
+  .stat span{
+    display:block;
+    font-size: 9.5px;
+    color: var(--steel-dim);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-top: 2px;
+  }
+  .ex-cue{
+    font-size: 12.5px;
+    color: var(--steel);
+    line-height: 1.45;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+  }
+  .ex-foot{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top: 10px;
+  }
+  .weight-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--chalk);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 4px 9px;
+  }
+  .weight-tag em{ color: var(--steel-dim); font-style: normal; }
+  .video-link{
+    display:flex; align-items:center; gap:5px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--acc);
+    text-decoration:none;
+    border: 1px solid var(--acc);
+    border-radius: 7px;
+    padding: 5px 10px;
+  }
+  .video-link svg{ width:11px; height:11px; }
+
+  .day-note{
+    font-size: 12.5px;
+    color: var(--steel);
+    line-height:1.55;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 13px;
+    margin-top: 4px;
+  }
+
+  /* ---------- Progress panel ---------- */
+  .prog-head{ padding: 4px 0 6px; }
+  .prog-title{
+    font-family:'Oswald', sans-serif;
+    font-weight:600; font-size:22px; text-transform:uppercase;
+    margin: 3px 0 4px;
+  }
+  .kpi-row{
+    display:grid; grid-template-columns: repeat(3,1fr);
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .kpi{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align:center;
+  }
+  .kpi .val{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600; font-size: 19px; color:var(--chalk);
+  }
+  .kpi .delta{
+    font-size: 11px; font-family:'IBM Plex Mono', monospace; margin-top:3px;
+  }
+  .kpi .lbl{
+    font-size: 9.5px; color: var(--steel-dim); text-transform:uppercase; letter-spacing:.06em; margin-top:5px;
+  }
+  .up{ color: var(--bad); }
+  .down{ color: var(--good); }
+
+  .chart-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 12px 8px;
+    margin-bottom: 16px;
+  }
+  .chart-card h3{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing:.08em; text-transform:uppercase;
+    color: var(--steel); margin: 0 0 10px; font-weight:500;
+  }
+  .chart-card canvas{ max-height: 170px; }
+
+  table.mtable{
+    width:100%; border-collapse: collapse;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    margin-top: 4px;
+  }
+  table.mtable th, table.mtable td{
+    padding: 8px 5px;
+    text-align:right;
+    border-bottom: 1px solid var(--line);
+  }
+  table.mtable th:first-child, table.mtable td:first-child{
+    text-align:left; color: var(--steel);
+  }
+  table.mtable thead th{
+    color: var(--steel-dim);
+    font-weight:500;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing:.05em;
+  }
+  table.mtable td{ color: var(--chalk); }
+  .mtable-wrap{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 12px 4px;
+    overflow-x:auto;
+  }
+  .trainer-note{
+    margin-top: 16px;
+    font-size: 12.5px;
+    color: var(--steel);
+    line-height: 1.55;
+    border-left: 2px solid var(--legs);
+    padding: 4px 0 4px 12px;
+  }
+  footer{
+    text-align:center; padding: 26px 16px 6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px; color: var(--steel-dim); letter-spacing:.04em;
+  }
+</style>
+</head>
+<body>
+
+<input type="radio" name="tabs" id="tab-push" class="tabs-input" checked>
+<input type="radio" name="tabs" id="tab-pull" class="tabs-input">
+<input type="radio" name="tabs" id="tab-legs" class="tabs-input">
+<input type="radio" name="tabs" id="tab-upper" class="tabs-input">
+<input type="radio" name="tabs" id="tab-progress" class="tabs-input">
+
+<header>
+  <div class="eyebrow">Star 11 Gym · Reg 1115</div>
+  <h1>Parthiv's Log</h1>
+  <div class="sub">4-day upper-priority split · ~45-50 min working time · any 4 days a week</div>
+</header>
+
+<label class="tabbar-shell"></label>
+<div class="tabbar">
+  <label class="tab-label l-push" for="tab-push"><span class="plate"></span>Push</label>
+  <label class="tab-label l-pull" for="tab-pull"><span class="plate"></span>Pull</label>
+  <label class="tab-label l-legs" for="tab-legs"><span class="plate"></span>Legs</label>
+  <label class="tab-label l-upper" for="tab-upper"><span class="plate"></span>Upper</label>
+  <label class="tab-label l-progress" for="tab-progress"><span class="plate"></span>Progress</label>
+</div>
+
+<div class="panels">
+<div class="wrap">
+
+  <!-- ===================== DAY 1 — PUSH ===================== -->
+  <section class="day day-push" style="--acc:var(--push); --acc-dim:var(--push-dim);">
+    <div class="day-head">
+      <div class="day-tag" style="color:var(--push)">Day 1 · Push</div>
+      <div class="day-title">Chest · Shoulders · Triceps · Core</div>
+      <div class="day-meta"><span>Target <b>~48 min</b></span><span>Warm-up <b>5 min</b></span></div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Barbell Flat Bench Press</div><div class="muscle-pill">Chest</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 6–8</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>90s</b><span>Rest</span></div>
+          <div class="stat"><b>10 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">New to barbell — start with the empty bar (20kg) for the first week to groove the path before adding plates.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>20kg bar</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=barbell+flat+bench+press+proper+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Seated DB Shoulder Press</div><div class="muscle-pill">Shoulders</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 8–10</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>75s</b><span>Rest</span></div>
+          <div class="stat"><b>8 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Seat back near-vertical. Press straight up, don't flare elbows past shoulder line.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>7.5kg / hand</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=seated+dumbbell+shoulder+press+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block paired" style="--acc:var(--push)">
+      <div class="block-label">Superset A1 / A2 — no rest between the pair</div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Incline DB Press <span style="color:var(--steel-dim);font-size:12px;">— A1</span></div><div class="muscle-pill">Chest (upper)</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 8–10</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>—</b><span>Rest</span></div>
+          <div class="stat"><b>30–45°</b><span>Bench angle</span></div>
+        </div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>7.5kg / hand</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=incline+dumbbell+press+form">▶ Form guide</a>
+        </div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Cable Lateral Raise <span style="color:var(--steel-dim);font-size:12px;">— A2</span></div><div class="muscle-pill">Shoulders (side)</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 12–15</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>60s</b><span>Rest after pair</span></div>
+          <div class="stat"><b>10 min</b><span>Block time</span></div>
+        </div>
+        <div class="ex-cue">Slight forward lean, lead with the elbow, low pulley setting.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~4–5kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=cable+lateral+raise+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Triceps Rope Pushdown</div><div class="muscle-pill">Triceps</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 10–12</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>45s</b><span>Rest</span></div>
+          <div class="stat"><b>6 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Elbows pinned to your sides the whole set — only the forearm moves.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~10–15kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=triceps+rope+pushdown+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Hanging / Lying Leg Raise</div><div class="muscle-pill">Core</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>2 × 12–15</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>30s</b><span>Rest</span></div>
+          <div class="stat"><b>4 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Controlled — no swinging. Lower legs slowly, don't let momentum do the work.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Bodyweight</div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=hanging+leg+raise+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-note">Stretch 5 min: chest doorway stretch + cross-body shoulder stretch, 30s each side.</div>
+  </section>
+
+  <!-- ===================== DAY 2 — PULL ===================== -->
+  <section class="day day-pull" style="--acc:var(--pull); --acc-dim:var(--pull-dim);">
+    <div class="day-head">
+      <div class="day-tag" style="color:var(--pull)">Day 2 · Pull</div>
+      <div class="day-title">Back · Biceps · Core</div>
+      <div class="day-meta"><span>Target <b>~47 min</b></span><span>Warm-up <b>5 min</b></span></div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Barbell Bent-Over Row</div><div class="muscle-pill">Back</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 6–8</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>90s</b><span>Rest</span></div>
+          <div class="stat"><b>10 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Torso ~45°, flat back throughout. Swap for Seated Cable Row if the rack is busy or your lower back needs an easier entry point.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>20kg bar</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=barbell+bent+over+row+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Weighted / Assisted Chin-Up</div><div class="muscle-pill">Back · Biceps</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 8–10</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>75s</b><span>Rest</span></div>
+          <div class="stat"><b>8 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Dead hang to chin-over-bar, full range. Use the assisted machine on max assist if bodyweight reps aren't there yet.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Bodyweight / assisted</div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=chin+up+proper+form+beginner">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block paired" style="--acc:var(--pull)">
+      <div class="block-label">Superset B1 / B2 — no rest between the pair</div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Lat Pulldown (underhand) <span style="color:var(--steel-dim);font-size:12px;">— B1</span></div><div class="muscle-pill">Back</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 8–10</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>—</b><span>Rest</span></div>
+          <div class="stat"><b>Underhand</b><span>Grip</span></div>
+        </div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~25–30kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=underhand+lat+pulldown+form">▶ Form guide</a>
+        </div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">EZ-Bar Curl <span style="color:var(--steel-dim);font-size:12px;">— B2</span></div><div class="muscle-pill">Biceps</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 8–10</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>60s</b><span>Rest after pair</span></div>
+          <div class="stat"><b>10 min</b><span>Block time</span></div>
+        </div>
+        <div class="ex-cue">Elbows fixed at your sides — no swinging the bar up with your back.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~10–12.5kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=ez+bar+curl+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Incline DB Curl</div><div class="muscle-pill">Biceps</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>2 × 10–12</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>45s</b><span>Rest</span></div>
+          <div class="stat"><b>45–60°</b><span>Bench angle</span></div>
+        </div>
+        <div class="ex-cue">Let the arm hang fully straight at the bottom for a deep stretch.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>5kg / hand</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=incline+dumbbell+curl+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Side Plank</div><div class="muscle-pill">Core · Obliques</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>2 × 30–45s</b><span>Per side</span></div>
+          <div class="stat"><b>30s</b><span>Rest</span></div>
+          <div class="stat"><b>4 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Hips lifted, straight line ear-to-ankle — don't let hips sag.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Bodyweight</div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=side+plank+correct+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-note">Stretch 5 min: lat stretch on the pulldown bar + standing bicep stretch, 30s each side.</div>
+  </section>
+
+  <!-- ===================== DAY 3 — LEGS ===================== -->
+  <section class="day day-legs" style="--acc:var(--legs); --acc-dim:var(--legs-dim);">
+    <div class="day-head">
+      <div class="day-tag" style="color:var(--legs)">Day 3 · Legs</div>
+      <div class="day-title">Quads · Hamstrings · Calves</div>
+      <div class="day-meta"><span>Target <b>~43 min</b></span><span>Warm-up <b>5 min</b></span></div>
+    </div>
+    <div class="day-note" style="margin-bottom:16px;">Aligned with your trainer's own leg-day exercise picks — squat and leg press give you the compound volume, leg curl covers hamstrings, calf raise and bicycle crunch round it out. Still your shortest session — enough to keep legs developing without eating into upper-body priority.</div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Leg Press</div><div class="muscle-pill">Quads · Glutes</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 8–10</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>90s</b><span>Rest</span></div>
+          <div class="stat"><b>9 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Feet shoulder-width on the platform, don't lock your knees out at the top.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~40kg on sled</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=leg+press+machine+correct+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Barbell Back Squat</div><div class="muscle-pill">Quads · Glutes</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 6–8</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>90s</b><span>Rest</span></div>
+          <div class="stat"><b>10 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Straight from your trainer's own plan — start with just the empty bar (20kg) to groove the pattern before adding plates. Chest up, knees tracking over your toes, squat to a comfortable depth.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>20kg bar</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=barbell+back+squat+form+beginner">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block paired" style="--acc:var(--legs)">
+      <div class="block-label">Superset C1 / C2 — no rest between the pair</div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Leg Extension <span style="color:var(--steel-dim);font-size:12px;">— C1</span></div><div class="muscle-pill">Quads</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>2 × 12–15</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>—</b><span>Rest</span></div>
+          <div class="stat"><b>Slow</b><span>Tempo</span></div>
+        </div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~15–20kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=leg+extension+machine+form">▶ Form guide</a>
+        </div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Lying Leg Curl <span style="color:var(--steel-dim);font-size:12px;">— C2</span></div><div class="muscle-pill">Hamstrings</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>2 × 12–15</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>60s</b><span>Rest after pair</span></div>
+          <div class="stat"><b>6 min</b><span>Block time</span></div>
+        </div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~12–15kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=lying+leg+curl+machine+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Standing Calf Raise</div><div class="muscle-pill">Calves</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>2 × 15–20</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>45s</b><span>Rest</span></div>
+          <div class="stat"><b>4 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Full stretch at the bottom, full contraction at the top — pause a beat up top.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Machine weight — moderate</div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=standing+calf+raise+machine+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Bicycle Crunch</div><div class="muscle-pill">Core · Obliques</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>2 × 15–20</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>30s</b><span>Rest</span></div>
+          <div class="stat"><b>4 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">From your trainer's plan — slow and controlled, elbow to opposite knee, don't yank your neck. Builds the oblique muscle; the fat over it keeps coming down with the diet, not from this move alone.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Bodyweight</div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=bicycle+crunch+correct+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-note">Stretch 5 min: quad stretch + hamstring forward fold, 30s each side.</div>
+  </section>
+
+  <!-- ===================== DAY 4 — UPPER TOTAL ===================== -->
+  <section class="day day-upper" style="--acc:var(--upper); --acc-dim:var(--upper-dim);">
+    <div class="day-head">
+      <div class="day-tag" style="color:var(--upper)">Day 4 · Upper Total</div>
+      <div class="day-title">2nd Hit — Chest · Back · Shoulders · Arms</div>
+      <div class="day-meta"><span>Target <b>~47 min</b></span><span>Warm-up <b>5 min</b></span></div>
+    </div>
+
+    <div class="block paired" style="--acc:var(--upper)">
+      <div class="block-label">Superset D1 / D2 — no rest between the pair</div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Incline Barbell / DB Press <span style="color:var(--steel-dim);font-size:12px;">— D1</span></div><div class="muscle-pill">Chest · Shoulders</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 8–10</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>—</b><span>Rest</span></div>
+          <div class="stat"><b>30°</b><span>Bench angle</span></div>
+        </div>
+        <div class="ex-cue">Different angle from Day 1's flat bench — hits upper chest and front delts for a fuller 2nd weekly stimulus.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>7.5kg DB / hand</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=incline+barbell+press+form">▶ Form guide</a>
+        </div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Incline DB Flys <span style="color:var(--steel-dim);font-size:12px;">— D2</span></div><div class="muscle-pill">Chest</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 12–15</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>60s</b><span>Rest after pair</span></div>
+          <div class="stat"><b>10 min</b><span>Block time</span></div>
+        </div>
+        <div class="ex-cue">From your trainer's plan — light dumbbells, slight elbow bend held throughout, feel the stretch across the chest at the bottom rather than pressing the weight up.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~4–5kg / hand</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=incline+dumbbell+fly+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Seated Cable Row</div><div class="muscle-pill">Back</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 8–10</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>75s</b><span>Rest</span></div>
+          <div class="stat"><b>8 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Chest up, pull to your lower ribs, squeeze the shoulder blades together at the end.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~25kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=seated+cable+row+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block paired" style="--acc:var(--upper)">
+      <div class="block-label">Superset E1 / E2 — no rest between the pair</div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">DB Lateral Raise <span style="color:var(--steel-dim);font-size:12px;">— E1</span></div><div class="muscle-pill">Shoulders</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 12–15</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>—</b><span>Rest</span></div>
+          <div class="stat"><b>Elbow-led</b><span>Cue</span></div>
+        </div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~4–5kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=dumbbell+lateral+raise+form">▶ Form guide</a>
+        </div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Face Pull <span style="color:var(--steel-dim);font-size:12px;">— E2</span></div><div class="muscle-pill">Rear Delts</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 12–15</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>45s</b><span>Rest after pair</span></div>
+          <div class="stat"><b>8 min</b><span>Block time</span></div>
+        </div>
+        <div class="ex-cue">Pull to eye level, elbows high — this balances all the pressing for shoulder health.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~10kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=cable+face+pull+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block paired" style="--acc:var(--upper)">
+      <div class="block-label">Superset F1 / F2 — no rest between the pair</div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">DB / EZ-Bar Curl <span style="color:var(--steel-dim);font-size:12px;">— F1</span></div><div class="muscle-pill">Biceps</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 8–10</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>—</b><span>Rest</span></div>
+          <div class="stat"><b>Controlled</b><span>Tempo</span></div>
+        </div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>7.5kg DB / hand</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=dumbbell+bicep+curl+form">▶ Form guide</a>
+        </div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Overhead Cable Triceps Ext <span style="color:var(--steel-dim);font-size:12px;">— F2</span></div><div class="muscle-pill">Triceps</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>3 × 10–12</b><span>Sets × Reps</span></div>
+          <div class="stat"><b>45s</b><span>Rest after pair</span></div>
+          <div class="stat"><b>8 min</b><span>Block time</span></div>
+        </div>
+        <div class="ex-cue">Elbows pointed forward and fixed, get a full stretch behind your head.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Start: <em>~10–15kg</em></div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=overhead+cable+triceps+extension+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="ex-card">
+        <div class="ex-top"><div class="ex-name">Plank</div><div class="muscle-pill">Core</div></div>
+        <div class="ex-grid">
+          <div class="stat"><b>2 × 45–60s</b><span>Hold</span></div>
+          <div class="stat"><b>30s</b><span>Rest</span></div>
+          <div class="stat"><b>3 min</b><span>Time</span></div>
+        </div>
+        <div class="ex-cue">Neutral spine, brace like you're about to be poked in the stomach.</div>
+        <div class="ex-foot">
+          <div class="weight-tag">Bodyweight</div>
+          <a class="video-link" target="_blank" href="https://www.youtube.com/results?search_query=plank+correct+form">▶ Form guide</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-note">Stretch 5 min: full upper-body stretch — chest, lats, shoulders, 30s each.</div>
+  </section>
+
+  <!-- ===================== PROGRESS ===================== -->
+  <section class="day day-progress">
+    <div class="prog-head">
+      <div class="day-tag" style="color:var(--steel)">Body Measurements</div>
+      <div class="prog-title">Progress So Far</div>
+      <div class="sub">Star 11 Gym result card · 3 checkpoints, 05 Mar → 20 Jul 2026</div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="val">75.1<span style="font-size:11px;color:var(--steel-dim);">kg</span></div><div class="delta down">▼ 0.6kg</div><div class="lbl">Weight</div></div>
+      <div class="kpi"><div class="val">23.7<span style="font-size:11px;color:var(--steel-dim);">%</span></div><div class="delta down">▼ 1.7%</div><div class="lbl">Body Fat</div></div>
+      <div class="kpi"><div class="val">30<span style="font-size:11px;color:var(--steel-dim);">cm</span></div><div class="delta down">▼ 7cm</div><div class="lbl">Waist</div></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Weight (kg)</h3>
+      <canvas id="chartWeight"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Body Fat (%)</h3>
+      <canvas id="chartFat"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Waist (cm)</h3>
+      <canvas id="chartWaist"></canvas>
+    </div>
+
+    <div class="mtable-wrap">
+      <table class="mtable">
+        <thead>
+          <tr><th>Metric</th><th>05 Mar</th><th>08 Apr</th><th>20 Jul</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Weight (kg)</td><td>75.7</td><td>75.7</td><td>75.1</td></tr>
+          <tr><td>BMI</td><td>25.1</td><td>25.1</td><td>~24.9</td></tr>
+          <tr><td>Body Fat %</td><td>25.4</td><td>25.2</td><td>23.7</td></tr>
+          <tr><td>Visceral Fat</td><td>8.5</td><td>8.5</td><td>8.5</td></tr>
+          <tr><td>Neck</td><td>14.8</td><td>14.7</td><td>14.5</td></tr>
+          <tr><td>Shoulder</td><td>19</td><td>18.5</td><td>19.5</td></tr>
+          <tr><td>Chest</td><td>39.5</td><td>39</td><td>38.5</td></tr>
+          <tr><td>Upper Arm</td><td>11</td><td>11.5</td><td>11.1</td></tr>
+          <tr><td>Fore Arm</td><td>10.3</td><td>10.5</td><td>10.5</td></tr>
+          <tr><td>Upper Abdomen</td><td>35.5</td><td>35.5</td><td>35</td></tr>
+          <tr><td>Waist</td><td>37</td><td>36</td><td>30</td></tr>
+          <tr><td>Lower Abdomen</td><td>39</td><td>37</td><td>37.5</td></tr>
+          <tr><td>Hips</td><td>41.5</td><td>41</td><td>40</td></tr>
+          <tr><td>Thigh</td><td>24</td><td>24</td><td>24</td></tr>
+          <tr><td>Calf</td><td>14.5</td><td>14.5</td><td>15</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trainer-note">Trainer's note (Maxwell, 20 Jul): focus more on abs, arms &amp; chest — this is exactly what the current split is built around.</div>
+  </section>
+
+</div>
+</div>
+
+<footer>Static log · v1 — logging &amp; auto-progression coming next</footer>
+
+<script>
+  const chartOpts = (labels, data, color) => ({
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: color,
+        backgroundColor: color + '22',
+        pointBackgroundColor: color,
+        pointRadius: 4,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.35
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#2c3038' }, ticks: { color: '#8b9099', font: { family: 'IBM Plex Mono', size: 10 } } },
+        y: { grid: { color: '#2c3038' }, ticks: { color: '#8b9099', font: { family: 'IBM Plex Mono', size: 10 } } }
+      }
+    }
+  });
+
+  const labels = ['05 Mar', '08 Apr', '20 Jul'];
+  new Chart(document.getElementById('chartWeight'), chartOpts(labels, [75.7, 75.7, 75.1], '#8b9099'));
+  new Chart(document.getElementById('chartFat'), chartOpts(labels, [25.4, 25.2, 23.7], '#6fae7f'));
+  new Chart(document.getElementById('chartWaist'), chartOpts(labels, [37, 36, 30], '#c4453a'));
+</script>
+
+</body>
+</html>

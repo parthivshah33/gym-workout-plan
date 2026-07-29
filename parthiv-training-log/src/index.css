@@ -1,0 +1,692 @@
+/* ────────────────────────────────────────────────────────────────────────
+   Parthiv — Training Log  ·  Design System
+   ──────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #0c0e12;
+  --surface: #161920;
+  --surface-2: #1e222a;
+  --surface-3: #262b34;
+  --line: #2a2f3a;
+  --chalk: #edede7;
+  --steel: #8b9099;
+  --steel-dim: #5c6169;
+
+  /* Plate-inspired accent colours */
+  --push: #c4453a;       /* 25kg plate red   */
+  --push-dim: #c4453a20;
+  --push-glow: #c4453a44;
+  --pull: #3b7ea5;       /* 20kg plate blue  */
+  --pull-dim: #3b7ea520;
+  --pull-glow: #3b7ea544;
+  --legs: #b59a2e;       /* 15kg plate yellow */
+  --legs-dim: #b59a2e20;
+  --legs-glow: #b59a2e44;
+  --upper: #4c7a5b;      /* 10kg plate green */
+  --upper-dim: #4c7a5b20;
+  --upper-glow: #4c7a5b44;
+
+  --good: #6fae7f;
+  --bad: #c4453a;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--chalk);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ─── Utilities ─────────────────────────────────────────────────────── */
+
+.wrap {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ─── Header ────────────────────────────────────────────────────────── */
+
+.header {
+  padding: calc(24px + env(safe-area-inset-top, 0px)) 16px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--steel-dim), transparent);
+}
+
+.eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--steel);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--good);
+  box-shadow: 0 0 6px var(--good);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.header h1 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 8vw, 36px);
+  letter-spacing: 0.02em;
+  margin: 6px 0 4px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--chalk), var(--steel));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sub {
+  color: var(--steel);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* ─── Tab Bar ───────────────────────────────────────────────────────── */
+
+.tabbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 12px 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(12, 14, 18, 0.85);
+}
+
+.tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 2px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  background: var(--surface);
+  transition: border-color var(--transition), color var(--transition),
+              background var(--transition), box-shadow var(--transition),
+              transform var(--transition);
+  -webkit-user-select: none;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.tab-btn:hover {
+  transform: translateY(-1px);
+}
+
+.tab-btn:active {
+  transform: translateY(0);
+}
+
+/* Color variants */
+.tab-btn--push  { color: var(--steel); }
+.tab-btn--pull  { color: var(--steel); }
+.tab-btn--legs  { color: var(--steel); }
+.tab-btn--upper { color: var(--steel); }
+.tab-btn--progress { color: var(--steel); }
+
+.tab-btn--push.active  { color: var(--push);  border-color: var(--push);  background: var(--push-dim);  box-shadow: 0 0 20px var(--push-glow), inset 0 0 20px var(--push-dim); }
+.tab-btn--pull.active  { color: var(--pull);  border-color: var(--pull);  background: var(--pull-dim);  box-shadow: 0 0 20px var(--pull-glow), inset 0 0 20px var(--pull-dim); }
+.tab-btn--legs.active  { color: var(--legs);  border-color: var(--legs);  background: var(--legs-dim);  box-shadow: 0 0 20px var(--legs-glow), inset 0 0 20px var(--legs-dim); }
+.tab-btn--upper.active { color: var(--upper); border-color: var(--upper); background: var(--upper-dim); box-shadow: 0 0 20px var(--upper-glow), inset 0 0 20px var(--upper-dim); }
+.tab-btn--progress.active { color: var(--chalk); border-color: var(--steel-dim); background: var(--surface-2); }
+
+/* Plate icon */
+.plate {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid currentColor;
+  position: relative;
+  transition: transform var(--transition);
+}
+
+.plate::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.25;
+  transition: opacity var(--transition);
+}
+
+.tab-btn.active .plate::after {
+  opacity: 0.5;
+}
+
+.tab-btn.active .plate {
+  transform: scale(1.1);
+}
+
+.tab-btn--progress .plate {
+  border-style: dashed;
+}
+
+/* ─── Day Section ───────────────────────────────────────────────────── */
+
+.day-panel {
+  padding: 18px 0 6px;
+  animation: fadeSlideIn 0.35s ease-out;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.day-head {
+  padding: 4px 0 16px;
+}
+
+.day-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-tag::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, currentColor, transparent);
+  opacity: 0.25;
+}
+
+.day-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  text-transform: uppercase;
+  margin: 5px 0 8px;
+}
+
+.day-meta {
+  display: flex;
+  gap: 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--steel);
+}
+
+.day-meta b {
+  color: var(--chalk);
+  font-weight: 600;
+}
+
+/* ─── Block Group (superset bracket) ────────────────────────────────── */
+
+.block {
+  position: relative;
+  margin-bottom: 18px;
+  padding-left: 14px;
+}
+
+.block--paired {
+  border-left: 2px solid var(--acc, var(--steel));
+  padding-left: 14px;
+}
+
+.block-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--steel-dim);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* ─── Exercise Card ─────────────────────────────────────────────────── */
+
+.ex-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 15px 13px;
+  margin-bottom: 10px;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.ex-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--acc, var(--steel));
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.ex-card:hover {
+  border-color: var(--surface-3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.ex-card:hover::before {
+  opacity: 1;
+}
+
+.ex-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ex-name {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 16.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.ex-tag {
+  color: var(--steel-dim);
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.muscle-pill {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acc, var(--steel));
+  background: var(--acc-dim, var(--surface-2));
+  border-radius: 6px;
+  padding: 3px 7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ex-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.stat b {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--chalk);
+}
+
+.stat span {
+  display: block;
+  font-size: 9.5px;
+  color: var(--steel-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.ex-cue {
+  font-size: 12.5px;
+  color: var(--steel);
+  line-height: 1.45;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+
+.ex-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.weight-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--chalk);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 4px 9px;
+}
+
+.weight-tag em {
+  color: var(--steel-dim);
+  font-style: normal;
+}
+
+.video-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  color: var(--acc, var(--steel));
+  text-decoration: none;
+  border: 1px solid var(--acc, var(--line));
+  border-radius: 7px;
+  padding: 5px 10px;
+  transition: background var(--transition), box-shadow var(--transition);
+}
+
+.video-link:hover {
+  background: var(--acc-dim, var(--surface-2));
+  box-shadow: 0 0 12px var(--acc-dim, transparent);
+}
+
+.video-link svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
+/* ─── Day Note ──────────────────────────────────────────────────────── */
+
+.day-note {
+  font-size: 12.5px;
+  color: var(--steel);
+  line-height: 1.55;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 13px;
+  margin-top: 4px;
+  position: relative;
+}
+
+.day-note--top {
+  margin-bottom: 16px;
+  margin-top: 0;
+  border-left: 3px solid var(--acc, var(--steel));
+}
+
+/* ─── Progress Panel ────────────────────────────────────────────────── */
+
+.prog-head {
+  padding: 4px 0 6px;
+}
+
+.prog-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  text-transform: uppercase;
+  margin: 3px 0 4px;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  text-align: center;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.kpi:hover {
+  border-color: var(--surface-3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+}
+
+.kpi .val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--chalk);
+}
+
+.kpi .val-unit {
+  font-size: 11px;
+  color: var(--steel-dim);
+}
+
+.kpi .delta {
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-top: 4px;
+}
+
+.kpi .lbl {
+  font-size: 9.5px;
+  color: var(--steel-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 5px;
+}
+
+.delta--up   { color: var(--bad); }
+.delta--down { color: var(--good); }
+
+/* ─── Chart Card ────────────────────────────────────────────────────── */
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 12px 8px;
+  margin-bottom: 16px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.chart-card:hover {
+  border-color: var(--surface-3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.chart-card h3 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--steel);
+  margin: 0 0 10px;
+  font-weight: 500;
+}
+
+.chart-card canvas {
+  max-height: 170px;
+}
+
+/* ─── Measurement Table ─────────────────────────────────────────────── */
+
+.mtable-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px 12px 4px;
+  overflow-x: auto;
+}
+
+table.mtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  margin-top: 4px;
+}
+
+table.mtable th,
+table.mtable td {
+  padding: 8px 5px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+  transition: background var(--transition);
+}
+
+table.mtable th:first-child,
+table.mtable td:first-child {
+  text-align: left;
+  color: var(--steel);
+}
+
+table.mtable thead th {
+  color: var(--steel-dim);
+  font-weight: 500;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+table.mtable td {
+  color: var(--chalk);
+}
+
+table.mtable tbody tr {
+  transition: background var(--transition);
+}
+
+table.mtable tbody tr:hover {
+  background: var(--surface-2);
+}
+
+/* ─── Trainer Note ──────────────────────────────────────────────────── */
+
+.trainer-note {
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: var(--steel);
+  line-height: 1.55;
+  border-left: 2px solid var(--legs);
+  padding: 4px 0 4px 12px;
+}
+
+/* ─── Footer ────────────────────────────────────────────────────────── */
+
+footer {
+  text-align: center;
+  padding: 26px 16px 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--steel-dim);
+  letter-spacing: 0.04em;
+}
+
+footer a {
+  color: var(--steel);
+  text-decoration: none;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────── */
+
+@media (max-width: 380px) {
+  .tabbar {
+    gap: 4px;
+    padding: 10px 12px;
+  }
+
+  .tab-btn {
+    font-size: 9px;
+    padding: 6px 2px 7px;
+  }
+
+  .plate {
+    width: 16px;
+    height: 16px;
+    border-width: 2.5px;
+  }
+
+  .ex-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .kpi-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
