@@ -4,7 +4,7 @@ export default function Header() {
       <div className="eyebrow">Star 11 Gym · Reg 1115</div>
       <h1>Parthiv's Log</h1>
       <div className="sub">
-        4-day upper-priority split · ~45-50 min working time · any 4 days a week
+        3-day rotating split · Days 1–3 repeat as Days 4–6 · Fitness Basic
       </div>
     </header>
   );

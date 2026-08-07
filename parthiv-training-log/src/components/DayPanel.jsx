@@ -1,50 +1,68 @@
 import ExerciseCard from './ExerciseCard';
 
-export default function DayPanel({ day }) {
-  const accentVar = `var(--${day.color})`;
-  const accentDimVar = `var(--${day.color}-dim)`;
+const COLOR_VAR = {
+  push: 'var(--push)',
+  pull: 'var(--pull)',
+  legs: 'var(--legs)',
+  upper: 'var(--upper)',
+};
+
+function buildGlobalIndex(sections) {
+  let counter = 0;
+  return sections.map((section) => ({
+    ...section,
+    exercises: section.exercises.map((ex) => ({ ...ex, globalIdx: ++counter })),
+  }));
+}
+
+export default function DayPanel({ day, onVideoOpen }) {
+  const accentVar = COLOR_VAR[day.color] || 'var(--steel)';
+  const indexedSections = buildGlobalIndex(day.sections);
 
   return (
     <section
       className="day-panel"
-      style={{ '--acc': accentVar, '--acc-dim': accentDimVar }}
+      style={{ '--acc': accentVar, '--acc-dim': `var(--${day.color}-dim)` }}
     >
       <div className="day-head">
         <div className="day-tag" style={{ color: accentVar }}>
-          Day {day.dayNumber} · {day.label}
+          Day {day.dayNumbers}
         </div>
         <div className="day-title">{day.title}</div>
         <div className="day-meta">
-          <span>
-            Target <b>{day.targetTime}</b>
-          </span>
-          <span>
-            Warm-up <b>{day.warmup}</b>
+          <span>3 sets · 15 / 12 / 10 reps</span>
+          <span style={{ marginLeft: 'auto' }}>
+            Plan: <b>06 Mar → 01 Sep 2026</b>
           </span>
         </div>
       </div>
 
-      {day.topNote && (
-        <div className="day-note day-note--top">{day.topNote}</div>
-      )}
+      {indexedSections.map((section) => {
+        const sectionAccent = COLOR_VAR[section.color] || accentVar;
+        return (
+          <div key={section.group} className="muscle-section">
+            <div className="muscle-section-header" style={{ '--sec-color': sectionAccent }}>
+              <span className="muscle-section-line" />
+              <span className="muscle-section-label">{section.group}</span>
+              <span className="muscle-section-count">
+                {section.exercises.length} exercise{section.exercises.length !== 1 ? 's' : ''}
+              </span>
+            </div>
 
-      {day.blocks.map((block, blockIdx) => (
-        <div
-          key={blockIdx}
-          className={`block${block.paired ? ' block--paired' : ''}`}
-          style={block.paired ? { '--acc': accentVar } : undefined}
-        >
-          {block.label && <div className="block-label">{block.label}</div>}
-
-          {block.exercises.map((exercise, exIdx) => (
-            <ExerciseCard key={exIdx} exercise={exercise} />
-          ))}
-        </div>
-      ))}
-
-      {day.stretchNote && (
-        <div className="day-note">{day.stretchNote}</div>
-      )}
+            <div className="muscle-section-body">
+              {section.exercises.map((exercise) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  index={exercise.globalIdx}
+                  accentColor={sectionAccent}
+                  onVideoOpen={onVideoOpen}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </section>
   );
 }

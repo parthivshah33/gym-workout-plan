@@ -1,9 +1,9 @@
+// New 4-tab structure: 3 workout days (repeating) + Progress
 const TABS = [
-  { id: 'push', label: 'Push', variant: 'push' },
-  { id: 'pull', label: 'Pull', variant: 'pull' },
-  { id: 'legs', label: 'Legs', variant: 'legs' },
-  { id: 'upper', label: 'Upper', variant: 'upper' },
-  { id: 'progress', label: 'Progress', variant: 'progress' },
+  { id: 'back-biceps', label: 'Back & Bis', variant: 'pull' },
+  { id: 'legs-core',   label: 'Legs & Core', variant: 'legs' },
+  { id: 'push',        label: 'Push Day',    variant: 'push' },
+  { id: 'progress',    label: 'Progress',    variant: 'progress' },
 ];
 
 export default function TabBar({ activeTab, onTabChange }) {
