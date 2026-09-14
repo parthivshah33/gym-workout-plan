@@ -3,42 +3,45 @@ import Header from './components/Header';
 import TabBar from './components/TabBar';
 import DayPanel from './components/DayPanel';
 import ProgressPanel from './components/ProgressPanel';
+import MedicalPanel from './components/MedicalPanel';
 import VideoModal from './components/VideoModal';
 import { workoutDays } from './data/workoutData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('back-biceps');
-  const [activeVideo, setActiveVideo] = useState(null); // { videoId, title }
+  const [activeVideo, setActiveVideo] = useState(null);
 
   const activeDay = workoutDays.find((d) => d.id === activeTab);
 
   const handleVideoOpen = (video) => setActiveVideo(video);
   const handleVideoClose = () => setActiveVideo(null);
 
+  let panel = null;
+  if (activeTab === 'progress') {
+    panel = <ProgressPanel />;
+  } else if (activeTab === 'labs') {
+    panel = <MedicalPanel />;
+  } else if (activeDay) {
+    panel = (
+      <DayPanel
+        key={activeDay.id}
+        day={activeDay}
+        onVideoOpen={handleVideoOpen}
+      />
+    );
+  }
+
   return (
     <>
       <Header />
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <div className="wrap">
-        {activeTab === 'progress' ? (
-          <ProgressPanel />
-        ) : (
-          activeDay && (
-            <DayPanel
-              key={activeDay.id}
-              day={activeDay}
-              onVideoOpen={handleVideoOpen}
-            />
-          )
-        )}
-      </div>
+      <div className="wrap">{panel}</div>
 
       <footer>
-        Star 11 Gym · Plan: Fitness Basic · 06 Mar – 01 Sep 2026
+        Gym · BMI · Labs · Personal analysis
       </footer>
 
-      {/* Video modal rendered at root level so it overlays everything */}
       {activeVideo && (
         <VideoModal
           videoId={activeVideo.videoId}

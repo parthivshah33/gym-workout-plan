@@ -86,11 +86,11 @@ export default function ProgressPanel() {
     <section className="day-panel">
       <div className="prog-head">
         <div className="day-tag" style={{ color: 'var(--steel)' }}>
-          Body Measurements
+          BMI · Body composition
         </div>
-        <div className="prog-title">Progress So Far</div>
+        <div className="prog-title">Weight &amp; measurements</div>
         <div className="sub">
-          Star 11 Gym result card · 3 checkpoints, 05 Mar → 20 Jul 2026
+          Latest BMI ~24.9 · Star 11 Gym card · 05 Mar → 20 Jul 2026
         </div>
       </div>
 
