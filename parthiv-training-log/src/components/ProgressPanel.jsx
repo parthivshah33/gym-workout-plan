@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -90,7 +89,7 @@ export default function ProgressPanel() {
         </div>
         <div className="prog-title">Weight &amp; measurements</div>
         <div className="sub">
-          Latest BMI ~24.9 · Star 11 Gym card · 05 Mar → 20 Jul 2026
+          Latest weight 74 kg · estimated BMI ~24.5 · 05 Mar → 16 Sep 2026
         </div>
       </div>
 

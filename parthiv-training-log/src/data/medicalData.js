@@ -12,6 +12,33 @@ export const labReports = [
     referredBy: 'SELF',
     summary:
       'CBC mostly in range. Differential: neutrophils low, lymphocytes and eosinophils high. Peripheral smear adequate. Malaria (P.v. / P.f.) not detected.',
+    overview: [
+      {
+        title: 'Overall',
+        text: 'Most results are within this lab’s stated range. The report does not show an obvious problem with haemoglobin, total white blood cells, or platelets.',
+        tone: 'good',
+      },
+      {
+        title: 'Oxygen & energy',
+        text: 'Haemoglobin and red blood cell measurements are in range. These cells carry oxygen around the body, so the report does not suggest anaemia by the listed ranges.',
+        tone: 'good',
+      },
+      {
+        title: 'Infection & immunity',
+        text: 'The total white blood cell count is normal. The mix is slightly different from this lab’s range: neutrophils are 55%, lymphocytes 35%, and eosinophils 5%. Mild shifts can occur for many reasons, including recent illness or allergies, and percentages alone do not confirm a condition.',
+        tone: 'watch',
+      },
+      {
+        title: 'Clotting',
+        text: 'The platelet count is in range. Platelets help stop bleeding and form clots.',
+        tone: 'good',
+      },
+      {
+        title: 'Malaria screen',
+        text: 'No malaria parasite was detected, and the rapid P.v. / P.f. test appears negative.',
+        tone: 'good',
+      },
+    ],
     flags: [
       { label: 'Neutrophils 55%', detail: 'Below 60–70%' },
       { label: 'Lymphocytes 35%', detail: 'Above 20–30%' },

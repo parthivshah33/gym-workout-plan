@@ -23,6 +23,16 @@ export default function MedicalPanel() {
 
       <div className="lab-summary">{latest.summary}</div>
 
+      <div className="lab-overview">
+        <div className="lab-overview-heading">What this means in simple language</div>
+        {latest.overview.map((item) => (
+          <div className={`lab-overview-item lab-overview-item--${item.tone}`} key={item.title}>
+            <div className="lab-overview-title">{item.title}</div>
+            <div className="lab-overview-text">{item.text}</div>
+          </div>
+        ))}
+      </div>
+
       <div className="kpi-row">
         {latest.flags.map((flag) => (
           <div className="kpi kpi--flag" key={flag.label}>
@@ -75,8 +85,9 @@ export default function MedicalPanel() {
       ))}
 
       <div className="trainer-note">
-        Personal archive only — not a diagnosis. Ask your doctor to interpret the flagged
-        differential (neutrophils, lymphocytes, eosinophils).
+        This is a plain-language summary, not a diagnosis. Discuss the flagged white-cell
+        percentages with a doctor, especially if you feel unwell, have persistent fever,
+        unusual fatigue, breathing problems, or worsening symptoms.
       </div>
     </section>
   );
